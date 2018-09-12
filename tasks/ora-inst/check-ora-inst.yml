@@ -1,0 +1,42 @@
+---
+
+- name: "Check {{ ora_inst }} exists"
+  stat:
+    path: "{{ ora_inst }}"
+  register: ora_file
+
+- name: "Read {{ ora_inst }} content"
+  include_tasks: "read-ora.yml"
+  when: ora_file.stat.exists == True
+
+- name: "Create oinstall group"
+  group:
+    name: "{{ install_group }}"
+    state: "present"
+  become: True
+  when: ora_file.stat.exists == False
+
+- name: "Add {{ endeca_user }} to {{ install_group }}"
+  user:
+    name: "{{ endeca_user }}"
+    groups: "{{ install_group }}"
+    append: True
+  become: True
+
+- name: "Check inventory directory"
+  stat:
+    path: "{{ inventory_directory }}"
+  register: inventory
+  become: True
+
+# setting permissions 0774 for write access for all users in oinstall group
+- name: "Create inventory directory"
+  file:
+  args:
+    state: "directory"
+    path: "{{ inventory_directory }}"
+    owner: "{{ endeca_user }}"
+    group: "{{ install_group }}"
+    mode: "0774"
+  become: True
+  when: inventory.stat.exists == False

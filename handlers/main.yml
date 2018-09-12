@@ -1,0 +1,6 @@
+---
+- name: "Restart NFS"
+  service:
+    name: "{{ nfs_daemon }}"
+    state: "restarted"
+  become: True

@@ -1,0 +1,55 @@
+---
+- name: "Include OS specific variables"
+  include_vars: "{{ os_variables }}"
+  with_first_found:
+    - "{{ ansible_os_family }}-{{ ansible_distribution_major_version }}.yml"
+    - "{{ ansible_os_family }}.yml"
+  loop_control:
+    loop_var: os_variables
+
+- name: "Become section"
+  block:
+
+    - name: "Install requirements"
+      package:
+        name: "{{ package }}"
+        state: "present"
+      loop: "{{ packages_list }}"
+      loop_control:
+        loop_var: package
+
+    - name: "Start rpcbind"
+      service:
+        name: "rpcbind"
+        state: "started"
+        enabled: True
+
+    - name: "Ensure mount directories exist"
+      file:
+        path: "{{ mount_dir.strip().split()[0] }}"
+        state: "directory"
+        owner: "{{ endeca_user }}"
+        group: "{{ endeca_group }}"
+        mode: "0775"
+      with_items: "{{ nfs_exports }}"
+      loop_control:
+        loop_var: mount_dir
+
+    - name: "Add mount directories to /etc/exports"
+      lineinfile:
+        path: "/etc/exports"
+        line: "{{ item }}"
+        create: True
+        state: "present"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      with_items: "{{ nfs_exports }}"
+      register: nfs_exports_update
+      notify: "Restart NFS"
+
+    - name: "Run exportfs"
+      command: "/usr/sbin/exportfs -ra"
+      when: nfs_exports_update.changed
+
+  become: True

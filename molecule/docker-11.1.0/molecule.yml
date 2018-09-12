@@ -1,0 +1,36 @@
+---
+dependency:
+  name: galaxy
+  options:
+    role-file: requirements.yml
+driver:
+  name: docker
+lint:
+  name: yamllint
+  options:
+    config-file: .yamllint
+platforms:
+  - name: test-docker-centos6-endeca-toolsandframeworks-11.1
+    image: centos:6
+    privileged: True
+    groups:
+      - rhel_family
+provisioner:
+  name: ansible
+  config_options:
+    ssh_connection:
+      control_path: "/var/ans/%%h"
+  env:
+    ANSIBLE_LIBRARY:
+      /home/gitlab-runner/.local/lib/python2.7/site-packages/epam_ansible
+  lint:
+    name: ansible-lint
+scenario:
+  name: docker-11.1.0
+verifier:
+  name: testinfra
+  options:
+    verbose: true
+  directory: ../resources/tests/
+  lint:
+    name: flake8

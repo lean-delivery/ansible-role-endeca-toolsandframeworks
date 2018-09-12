@@ -1,0 +1,187 @@
+---
+- name: "Read PlatformServices path"
+  stat:
+    path: "{{ base_root }}/endeca/PlatformServices/{{ ps_version }}"
+  register: ps_dir
+
+- name: "Get endeca user"
+  set_fact:
+    endeca_user: "{{ ps_dir.stat.pw_name }}"
+    endeca_group: "{{ ps_dir.stat.gr_name }}"
+
+- name: "Install requirements"
+  package:
+    name: "{{ package }}"
+    state: "present"
+  loop: "{{ requirements }}"
+  loop_control:
+    loop_var: package
+  become: True
+
+- name: "Verify destination directory exists"
+  file:
+    owner: "{{ endeca_user }}"
+    group: "{{ endeca_group }}"
+    path: "{{ base_root }}/endeca"
+    state: "directory"
+    recurse: True
+  become: True
+
+# ToolsAndFrameworks versions lower 11.x
+- name: "Install ToolsAndFrameworks {{ tf_version }}"
+  block:
+
+    - name: "Extract ToolsAndFrameworks"
+      unarchive:
+        src: "{{ tf_artifact }}"
+        dest: "{{ base_root }}/endeca"
+        owner: "{{ endeca_user }}"
+        group: "{{ endeca_group }}"
+        mode: "0755"
+
+  become: True
+  when: tf_version.split('.')[0] | int < 11
+
+# ToolsAndFrameworks versions higher 11.x
+- name: "Install ToolsAndFrameworks {{ tf_version }}"
+  block:
+
+    - name: "Check oracle inventory requirements"
+      include_tasks: "ora-inst/check-ora-inst.yml"
+
+    - name: "Create swap file"
+      include_tasks: "system/swap.yml"
+
+    - name: "Extract ToolsAndFrameworks"
+      unarchive:
+        src: "{{ tf_artifact }}"
+        dest: "{{ download_path }}"
+        owner: "{{ endeca_user }}"
+        group: "{{ endeca_group }}"
+        mode: "0755"
+      become: True
+
+    # check component type: oracle.endeca.commerce or oracle.endeca.guidedsearch
+    - name: "Read ToolsAndFrameworks component type"
+      find:
+        paths: "{{ download_path }}/cd/Disk1/stage"
+        file_type: "file"
+        patterns: "oracle.endeca.commerce.*"
+        use_regex: True
+      become: True
+      register: commerce_type
+
+    - name: "Update install group in silent.rsp"
+      lineinfile:
+        path: "{{ download_path }}/cd/Disk1/install/silent_response.rsp"
+        regexp: "^UNIX_GROUP_NAME=\"dba\""
+        line: "UNIX_GROUP_NAME=\"{{ install_group }}\""
+      become: True
+
+    - name: "Update install type in in silent.rsp"
+      lineinfile:
+        path: "{{ download_path }}/cd/Disk1/install/silent_response.rsp"
+        regexp: "^INSTALL_TYPE=\"Complete Installation\""
+        line: "INSTALL_TYPE=\"{{ install_type }}\""
+      become: True
+
+    - name: "Set args for silent installation for {{ tf_version }}"
+      set_fact:
+        silent_args: "{{ download_path }}/cd/Disk1/install/silent_response.rsp \
+        ToolsAndFrameworks {{ base_root }}/endeca/ToolsAndFrameworks {{ workbench_password }}"
+      when: |
+        tf_version.split('.')[0] | int == 11 and
+        tf_version.split('.')[1] | int <= 1
+
+    - name: "Set args for silent installation for {{ tf_version }}"
+      set_fact:
+        silent_args: "{{ download_path }}/cd/Disk1/install/silent_response.rsp \
+        ToolsAndFrameworks {{ base_root }}/endeca/ToolsAndFrameworks"
+      when: |
+        not ( tf_version.split('.')[0] | int == 11 and
+        tf_version.split('.')[1] | int <= 1 )
+
+    - name: "Install ToolsAndFrameworks {{ tf_version }}"
+      command: "./silent_install.sh {{ silent_args }}"
+      args:
+        chdir: "{{ download_path }}/cd/Disk1/install"
+      register: tf_install
+      become_user: "{{ endeca_user}}"
+      become: True
+      failed_when: "'Install successful' not in tf_install.stdout_lines"
+
+    - name: "Run orainstRoot.sh"
+      command: "/home/{{ endeca_user }}/oraInventory/orainstRoot.sh"
+      become: True
+
+    - name: "Disable the swap file"
+      command: "/sbin/swapoff {{ swapfile_path }}"
+      become: True
+
+    - name: "Remove {{ swapfile_path }}"
+      file:
+        path: "{{ swapfile_path }}"
+        state: "absent"
+      become: True
+
+  when: tf_version.split('.')[0] | int >= 11
+
+- name: "Create service section"
+  block:
+
+    - name: "Create endeca pid directory"
+      file:
+        path: "{{ pid_dir }}"
+        owner: "{{ endeca_user }}"
+        group: "{{ endeca_group }}"
+        state: "directory"
+
+    - name: "Read ToolsAndFrameworks apache directory"
+      find:
+        paths: "{{ tf_path }}/server"
+        file_type: "directory"
+        patterns: "apache-tomcat-."
+        use_regex: True
+      register: tf_apache
+
+    - name: "Update pid location"
+      lineinfile:
+        path: "{{ tf_apache.files[0].path }}/bin/setenv.sh"
+        regexp: "CATALINA_PID=.*"
+        line: "CATALINA_PID={{ pid_dir }}/{{ tf_service }}.pid"
+        create: True
+        owner: "{{ endeca_user }}"
+        group: "{{ endeca_group }}"
+        mode: "0755"
+
+    - name: "Create ToolsAndFrameworks service in init.d"
+      template:
+        src: "toolsandframeworks_service.j2"
+        dest: "/etc/init.d/{{ tf_service }}"
+        mode: "0755"
+      when: ansible_facts.service_mgr in ("upstart", "sysvinit" )
+
+    - name: "Create ToolsAndFrameworks service in systemd"
+      template:
+        src: "toolsandframeworks_service.j2"
+        dest: "/etc/systemd/system/{{ tf_service }}.service"
+        mode: "0755"
+      when: ansible_facts.service_mgr == "systemd"
+
+    - name: "Systemd daemon-reload"
+      systemd:
+        daemon_reload: True
+      when: ansible_facts.service_mgr == "systemd"
+
+    - name: "Start ToolsAndFrameworks"
+      service:
+        name: "{{ tf_service }}"
+        enabled: True
+        state: "started"
+
+  become: True
+
+# ToolsAndFrameworks versions higher 11.2
+- name: "Update workbench password"
+  include_tasks: "update-workbench-password.yml"
+  when: tf_version.split('.')[0] | int >= 11

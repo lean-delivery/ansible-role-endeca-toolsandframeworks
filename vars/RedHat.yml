@@ -1,0 +1,6 @@
+---
+# NFS service name
+nfs_daemon: "nfs"
+
+packages_list:
+  - "nfs-utils"

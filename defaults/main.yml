@@ -1,0 +1,40 @@
+---
+# toolsandframeworks version
+tf_version: "11.3.0"
+# base path to install TF
+base_root: "/opt"
+
+# service name
+tf_service: "endeca-toolsandframeworks"
+
+# artifact source transport
+transport: "local"
+# available are:
+# - "web" Fetching artifact from custom web uri
+# - "local" Local artifact
+
+transport_local: "/tmp/V861200-01.zip"
+transport_web: "http://my-storage.example.com/V861200-01.zip"
+
+# path to download ToolsAndFrameworks
+download_path: "/tmp"
+
+# variables for ToolsAndFrameworks versions higher 11.x
+
+install_type: "Complete Installation"
+# available are:
+# - "Complete Installation"
+# - "Minimal Installation"
+
+# for Oracle Universal Installer
+install_group: "oinstall"
+inventory_directory: "{{ base_root }}/oraInventory"
+ora_inst: "/etc/oraInst.loc"
+
+# swap configuration
+swapfile_path: "/swapfile"
+swapfile_bs_size_mb: "1"
+swapfile_count: "512"
+
+# updating default "admin" workbench password
+workbench_password: ""

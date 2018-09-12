@@ -1,0 +1,28 @@
+---
+# since file base_root/endeca/ToolsAndFrameworks/{{ tf_version }}/README.txt
+# is created by installer, it's enough to check only if file exists
+- name: "Check ToolsAndFrameworks installation"
+  stat:
+    path: "{{ tf_path }}/README.txt"
+  become: True
+  register: tf_installed
+
+- name: "Install section"
+  block:
+
+    - name: "Fetch ToolsAndFrameworks artifact with {{ transport }} transport"
+      include_tasks: "{{ transport_driver }}"
+      with_first_found:
+        - "fetch/{{ transport }}.yml"
+        - "fetch/unknown-transport.yml"
+      loop_control:
+        loop_var: transport_driver
+
+    - name: "Run ToolsAndFrameworks {{ tf_version }} installation"
+      include_tasks: "install-tf.yml"
+
+  when: tf_installed.stat.exists == False
+
+- name: "Mount NFS directories"
+  include_tasks: "system/nfs.yml"
+  when: nfs_exports is defined

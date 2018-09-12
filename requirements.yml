@@ -1,0 +1,6 @@
+---
+- src: "lean_delivery.endeca_mdex"
+  version: v1.0
+
+- src: "lean_delivery.endeca_platformservices"
+  version: 1.0

@@ -1,0 +1,26 @@
+---
+galaxy_info:
+  role_name: "endeca_toolsandframeworks"
+  author: "Lean Delivery team <team@lean-delivery.com>"
+  description: "Lean Delivery Oracle Endeca ToolsAndFrameworks install"
+  company: "Epam Systems"
+  license: "Apache"
+  min_ansible_version: "2.5"
+  issue_tracker_url: "https://github.com/lean-delivery/\
+  ansible-role-endeca-toolsandframeworks/issues"
+  platforms:
+    - name: "EL"
+      versions:
+        - "6"
+        - "7"
+
+  galaxy_tags:
+    - "development"
+    - "system"
+    - "oracle"
+    - "endeca"
+    - "search"
+    - "toolsandframeworks"
+    - "commerce"
+
+dependencies: []
