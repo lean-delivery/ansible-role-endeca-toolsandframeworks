@@ -110,9 +110,11 @@
       become: True
       failed_when: "'Install successful' not in tf_install.stdout_lines"
 
+    # runs only for first product on target node installed using oracle universal installer
     - name: "Run orainstRoot.sh"
       command: "/home/{{ endeca_user }}/oraInventory/orainstRoot.sh"
       become: True
+      when: ora_file.stat.exists == False
 
     - name: "Disable the swap file"
       command: "/sbin/swapoff {{ swapfile_path }}"
