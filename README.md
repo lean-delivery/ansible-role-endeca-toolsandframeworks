@@ -98,6 +98,8 @@ Role Variables
 
   - `workbench_password` - update default workbench `admin` password (e.g. `Admin123`)
 
+  - `workbench_port` - workbench port  
+    default: `8006`
 
 Example Playbook
 ----------------
@@ -140,8 +142,8 @@ Example Playbook
       transport_web: "http://my-storage.example.com/V861203-01.zip"
     - role: lean_delivery.endeca_toolsandframeworks
       tf_version: "11.3.0"
-      transport: "local"
-      transport_local: "http://my-storage.example.com/V861200-01.zip"
+      transport: "web"
+      transport_web: "http://my-storage.example.com/V861200-01.zip"
       workbench_password: "Admin123"
       nfs_exports:
         - "/home/public *(rw,sync,no_root_squash)"

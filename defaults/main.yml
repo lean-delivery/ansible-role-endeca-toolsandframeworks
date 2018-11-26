@@ -36,5 +36,7 @@ swapfile_path: "/swapfile"
 swapfile_bs_size_mb: "1"
 swapfile_count: "512"
 
+# default workbench port
+workbench_port: "8006"
 # updating default "admin" workbench password
 workbench_password: ""
