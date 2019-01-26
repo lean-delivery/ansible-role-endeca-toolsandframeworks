@@ -1,0 +1,4 @@
+---
+tf_service_script: '{{ tf_service }}.service'
+tf_service_path: /etc/systemd/system
+tf_service_script_mode: 0755

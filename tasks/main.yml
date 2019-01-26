@@ -10,6 +10,14 @@
 - name: "Install section"
   block:
 
+    - name: "Load a variable file based on the service manager"
+      include_vars: '{{ service_manager }}'
+      with_first_found:
+        - '{{ ansible_service_mgr }}.yml'
+        - systemv.yml
+      loop_control:
+        loop_var: service_manager
+
     - name: "Fetch ToolsAndFrameworks artifact with {{ transport }} transport"
       include_tasks: "{{ transport_driver }}"
       with_first_found:
@@ -21,7 +29,7 @@
     - name: "Run ToolsAndFrameworks {{ tf_version }} installation"
       include_tasks: "install-tf.yml"
 
-  when: tf_installed.stat.exists == False
+  when: not tf_installed.stat.exists | bool
 
 - name: "Mount NFS directories"
   include_tasks: "system/nfs.yml"

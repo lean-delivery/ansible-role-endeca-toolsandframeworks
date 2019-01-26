@@ -1,16 +1,29 @@
 ---
 # Run all tests
 stages:
+  - lint
   - deployment test
 
 before_script:
   - ansible --version
   - molecule --version
+#  - ansible-config dump --only-changed
 
 variables:
   GET_SOURCES_ATTEMPTS: "5"
 
-AWS endeca-toolsandframeworks 11.3.0:
+Ansible lint:
+  stage: lint
+  before_script:
+    - git clone https://github.com/lean-delivery/ansible-lint-rules.git ~/ansible-lint-rules
+  script:
+    - ansible-lint . -c .ansible-lint
+  after_script:
+    - rm -rf ~/ansible-lint-rules
+  tags:
+    - delegated
+
+.AWS endeca-toolsandframeworks 11.3.0:
   variables:
     EPC_REGION: AWS-EUCENTRAL
   stage: deployment test
@@ -19,7 +32,7 @@ AWS endeca-toolsandframeworks 11.3.0:
   tags:
     - delegated
 
-EPC endeca-toolsandframeworks 11.3.0:
+.EPC endeca-toolsandframeworks 11.3.0:
   variables:
     EPC_REGION: EPAM-BY2
   stage: deployment test
@@ -28,27 +41,51 @@ EPC endeca-toolsandframeworks 11.3.0:
   tags:
     - delegated
 
-Docker endeca-toolsandframeworks 11.x:
+Docker endeca-toolsandframeworks 11.3.0-centos-7:
   stage: deployment test
   script:
     - molecule test -s docker-11.3.0-centos-7
+  tags:
+    - aws
+
+Docker endeca-toolsandframeworks 11.3.0-centos-6:
+  stage: deployment test
+  script:
     - molecule test -s docker-11.3.0-centos-6
+  tags:
+    - aws
+
+Docker endeca-toolsandframeworks 11.2.0-centos-7:
+  stage: deployment test
+  script:
     - molecule test -s docker-11.2.0-centos-7
+  tags:
+    - aws
+
+Docker endeca-toolsandframeworks 11.2.0-centos-6:
+  stage: deployment test
+  script:
     - molecule test -s docker-11.2.0-centos-6
+  tags:
+    - aws
+
+Docker endeca-toolsandframeworks 11.1.0:
+  stage: deployment test
+  script:
     - molecule test -s docker-11.1.0
   tags:
-    - docker
+    - aws
 
 Docker endeca-toolsandframeworks 3.1.2:
   stage: deployment test
   script:
     - molecule test -s docker-3.1.2
   tags:
-    - docker
+    - aws
 
 Docker endeca-toolsandframeworks 3.1.0:
   stage: deployment test
   script:
     - molecule test -s docker-3.1.0
   tags:
-    - docker
+    - aws

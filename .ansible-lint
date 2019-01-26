@@ -1,7 +1,5 @@
 exclude_paths:
- - ./.gitlab-ci.yml
  - ./.travis.yml
- - ./.yamllint 
  - ./molecule/
 rulesdir:
   - ~/ansible-lint-rules/rules/

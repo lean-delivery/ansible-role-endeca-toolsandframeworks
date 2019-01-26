@@ -4,14 +4,14 @@
   roles:
     - role: lean_delivery.endeca_mdex
       transport: "web"
-      transport_web: "{{ lookup('env','STORAGE_EPC') }}/oracle-commerce-suite/commerce/endeca11.3.0/V861206-01.zip"
+      transport_web: "{{ lookup('env','STORAGE_AWS') }}/oracle-commerce-suite/commerce/endeca11.3.0/V861206-01.zip"
     - role: lean_delivery.endeca_platformservices
       transport: "web"
-      transport_web: "{{ lookup('env','STORAGE_EPC') }}/oracle-commerce-suite/commerce/endeca11.3.0/V861203-01.zip"
+      transport_web: "{{ lookup('env','STORAGE_AWS') }}/oracle-commerce-suite/commerce/endeca11.3.0/V861203-01.zip"
     - role: ansible-role-endeca-toolsandframeworks
       tf_version: "11.3.0"
       transport: "web"
-      transport_web: "{{ lookup('env','STORAGE_EPC') }}/oracle-commerce-suite/commerce/endeca11.3.0/V861200-01.zip"
+      transport_web: "{{ lookup('env','STORAGE_AWS') }}/oracle-commerce-suite/commerce/endeca11.3.0/V861200-01.zip"
       workbench_password: "Admin123"
   vars:
     mdex_version: "11.3.0"

@@ -4,14 +4,15 @@
   roles:
     - role: lean_delivery.endeca_mdex
       transport: "web"
-      transport_web: "{{ lookup('env','STORAGE_EPC') }}/oracle-commerce-suite/commerce/endeca10.1/V35742-01.zip"
+      transport_web: "{{ lookup('env','STORAGE_AWS') }}/oracle-commerce-suite/commerce/endeca10.1/V35742-01.zip"
     - role: lean_delivery.endeca_platformservices
       transport: "web"
-      transport_web: "{{ lookup('env','STORAGE_EPC') }}/oracle-commerce-suite/commerce/endeca10.1/V33316-01.zip"
+      transport_web: "{{ lookup('env','STORAGE_AWS') }}/oracle-commerce-suite/commerce/endeca10.1/V33316-01.zip"
     - role: ansible-role-endeca-toolsandframeworks
       tf_version: "3.1.0"
       transport: "web"
-      transport_web: "{{ lookup('env','STORAGE_EPC') }}/oracle-commerce-suite/commerce/endeca10.1/V33386-01.zip"
+      transport_web: "{{ lookup('env','STORAGE_AWS') }}/oracle-commerce-suite/commerce/endeca10.1/V33386-01.zip"
   vars:
     mdex_version: "6.4.0"
     ps_version: "6.1.3"
+    swapfile_path: "/swapfile-3.1.0"

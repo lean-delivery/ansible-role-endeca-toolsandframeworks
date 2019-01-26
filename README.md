@@ -3,6 +3,9 @@ endeca_toolsandframeworks
 [![License](https://img.shields.io/badge/license-Apache-green.svg?style=flat)](https://raw.githubusercontent.com/lean-delivery/ansible-role-endeca-toolsandframeworks/master/LICENSE)
 [![Build Status](https://travis-ci.org/lean-delivery/ansible-role-endeca-toolsandframeworks.svg?branch=master)](https://travis-ci.org/lean-delivery/ansible-role-endeca-toolsandframeworks)
 [![Build Status](https://gitlab.com/lean-delivery/ansible-role-endeca-toolsandframeworks/badges/master/build.svg)](https://gitlab.com/lean-delivery/ansible-role-endeca-toolsandframeworks)
+[![Galaxy](https://img.shields.io/badge/galaxy-lean__delivery.endeca__toolsandframeworks-blue.svg)](https://galaxy.ansible.com/lean_delivery/endeca_toolsandframeworks)
+![Ansible](https://img.shields.io/ansible/role/d/29495.svg)
+![Ansible](https://img.shields.io/badge/dynamic/json.svg?label=min_ansible_version&url=https%3A%2F%2Fgalaxy.ansible.com%2Fapi%2Fv1%2Froles%2F29495%2F&query=$.min_ansible_version)
 
 ## Summary
 --------------
@@ -154,10 +157,16 @@ Example Playbook
 ```
 
 
-## License
+    - hosts: servers
+      roles:
+         - { role: ansible-role-endeca-toolsandframeworks, x: 42 }
 
-[Apache License 2.0](https://raw.githubusercontent.com/lean-delivery/ansible-role-endeca-toolsandframeworks/master/LICENSE)
+License
+-------
+Apache
 
-## Authors
+Author Information
+------------------
 
-[Lean Delivery team](team@lean-delivery.com)
+authors:
+  - Lean Delivery Team <team@lean-delivery.com>

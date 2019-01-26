@@ -15,9 +15,13 @@
         state: "unmounted"
 
     - name: "Create swapfile"
-      command: "dd if=/dev/zero of={{ swapfile_path }} bs={{ swapfile_bs_size_mb }}M \
-        count={{ swapfile_count }}"
-      when: swapfile.stat.exists == False
+      command: >-
+        dd if=/dev/zero of={{ swapfile_path }}
+        bs={{ swapfile_bs_size_mb }}M
+        count={{ swapfile_count }}
+      args:
+        creates: "{{ swapfile_path }}"
+      when: not swapfile.stat.exists
 
     - name: "Set swapfile permissions"
       file:
@@ -26,9 +30,13 @@
 
     - name: "Make swap"
       command: "/sbin/mkswap {{ swapfile_path }}"
+      register: make_swap_result
+      changed_when: make_swap_result.rc == 0
 
     - name: "Swap on"
       command: "/sbin/swapon {{ swapfile_path }}"
+      register: swap_on_result
+      changed_when: swap_on_result.rc == 0
 
     - name: "Add swap to /etc/fstab"
       lineinfile:
@@ -37,4 +45,4 @@
         state: "present"
 
   become: True
-  when: swapfile.stat.exists == False
+  when: not swapfile.stat.exists

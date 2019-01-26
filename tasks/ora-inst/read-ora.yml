@@ -11,11 +11,11 @@
 - name: "Get value of install_group"
   set_fact:
     install_group: "{{ item.split('=').1 }}"
-  with_items: "{{ ora_inst_content.splitlines() }}"
+  loop: "{{ ora_inst_content.splitlines() }}"
   when: item.split('=').0 == "inst_group"
 
 - name: "Get value of inventory_loc"
   set_fact:
     inventory_directory: "{{ item.split('=').1 }}"
-  with_items: "{{ ora_inst_content }}"
+  loop: "{{ ora_inst_content }}"
   when: item.split('=').0 == "inventory_loc"

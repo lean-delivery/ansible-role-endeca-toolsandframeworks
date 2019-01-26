@@ -12,11 +12,10 @@
 
     - name: "Install requirements"
       package:
-        name: "{{ package }}"
+        name: "{{ packages_list }}"
         state: "present"
-      loop: "{{ packages_list }}"
-      loop_control:
-        loop_var: package
+      register: status
+      until: status is succeeded
 
     - name: "Start rpcbind"
       service:
@@ -31,7 +30,7 @@
         owner: "{{ endeca_user }}"
         group: "{{ endeca_group }}"
         mode: "0775"
-      with_items: "{{ nfs_exports }}"
+      loop: "{{ nfs_exports }}"
       loop_control:
         loop_var: mount_dir
 
@@ -44,7 +43,7 @@
         owner: "root"
         group: "root"
         mode: "0644"
-      with_items: "{{ nfs_exports }}"
+      loop: "{{ nfs_exports }}"
       register: nfs_exports_update
       notify: "Restart NFS"
 

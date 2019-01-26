@@ -11,11 +11,10 @@
 
 - name: "Install requirements"
   package:
-    name: "{{ package }}"
+    name: "{{ requirements }}"
     state: "present"
-  loop: "{{ requirements }}"
-  loop_control:
-    loop_var: package
+  register: status
+  until: status is succeeded
   become: True
 
 - name: "Verify destination directory exists"
@@ -40,7 +39,7 @@
         mode: "0755"
 
   become: True
-  when: tf_version.split('.')[0] | int < 11
+  when: tf_version is version('11', '<')
 
 # ToolsAndFrameworks versions higher 11.x
 - name: "Install ToolsAndFrameworks {{ tf_version }}"
@@ -87,26 +86,24 @@
 
     - name: "Set args for silent installation for {{ tf_version }}"
       set_fact:
-        silent_args: "{{ download_path }}/cd/Disk1/install/silent_response.rsp \
-        ToolsAndFrameworks {{ base_root }}/endeca/ToolsAndFrameworks {{ workbench_password }}"
-      when: |
-        tf_version.split('.')[0] | int == 11 and
-        tf_version.split('.')[1] | int <= 1
+        silent_args: >-
+          {{ download_path }}/cd/Disk1/install/silent_response.rsp ToolsAndFrameworks
+          {{ base_root }}/endeca/ToolsAndFrameworks {{ workbench_password }}
+      when: tf_version is version ('11.1.0', '<=')
 
     - name: "Set args for silent installation for {{ tf_version }}"
       set_fact:
-        silent_args: "{{ download_path }}/cd/Disk1/install/silent_response.rsp \
-        ToolsAndFrameworks {{ base_root }}/endeca/ToolsAndFrameworks"
-      when: |
-        not ( tf_version.split('.')[0] | int == 11 and
-        tf_version.split('.')[1] | int <= 1 )
+        silent_args: >-
+          {{ download_path }}/cd/Disk1/install/silent_response.rsp
+          ToolsAndFrameworks {{ base_root }}/endeca/ToolsAndFrameworks
+      when: tf_version is version ('11.1.0', '>')
 
     - name: "Install ToolsAndFrameworks {{ tf_version }}"
       command: "./silent_install.sh {{ silent_args }}"
       args:
         chdir: "{{ download_path }}/cd/Disk1/install"
       register: tf_install
-      become_user: "{{ endeca_user}}"
+      become_user: "{{ endeca_user }}"
       become: True
       failed_when: "'Install successful' not in tf_install.stdout_lines"
 
@@ -114,19 +111,9 @@
     - name: "Run orainstRoot.sh"
       command: "/home/{{ endeca_user }}/oraInventory/orainstRoot.sh"
       become: True
-      when: ora_file.stat.exists == False
+      when: not ora_file.stat.exists | bool
 
-    - name: "Disable the swap file"
-      command: "/sbin/swapoff {{ swapfile_path }}"
-      become: True
-
-    - name: "Remove {{ swapfile_path }}"
-      file:
-        path: "{{ swapfile_path }}"
-        state: "absent"
-      become: True
-
-  when: tf_version.split('.')[0] | int >= 11
+  when: tf_version is version ('11', '>=')
 
 - name: "Create service section"
   block:
@@ -156,26 +143,19 @@
         group: "{{ endeca_group }}"
         mode: "0755"
 
-    - name: "Create ToolsAndFrameworks service in init.d"
+    - name: "Create ToolsAndFrameworks service"
       template:
         src: "toolsandframeworks_service.j2"
-        dest: "/etc/init.d/{{ tf_service }}"
-        mode: "0755"
-      when: ansible_facts.service_mgr in ("upstart", "sysvinit" )
+        dest: '{{ tf_service_path }}/{{ tf_service_script }}'
+        mode: '{{ tf_service_script_mode }}'
+        force: True
 
-    - name: "Create ToolsAndFrameworks service in systemd"
-      template:
-        src: "toolsandframeworks_service.j2"
-        dest: "/etc/systemd/system/{{ tf_service }}.service"
-        mode: "0755"
-      when: ansible_facts.service_mgr == "systemd"
-
-    - name: "Systemd daemon-reload"
+    - name: "Reload systemd configuration"
       systemd:
         daemon_reload: True
       when: ansible_facts.service_mgr == "systemd"
 
-    - name: "Start ToolsAndFrameworks"
+    - name: "Restart toolsandframworks service"
       service:
         name: "{{ tf_service }}"
         enabled: True
@@ -186,4 +166,4 @@
 # ToolsAndFrameworks versions higher 11.2
 - name: "Update workbench password"
   include_tasks: "update-workbench-password.yml"
-  when: tf_version.split('.')[0] | int >= 11
+  when: tf_version is version ('11', '>=')

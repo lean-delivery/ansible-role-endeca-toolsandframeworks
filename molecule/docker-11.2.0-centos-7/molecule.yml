@@ -13,16 +13,12 @@ platforms:
   - name: test-docker-centos7-endeca-toolsandframeworks-11.2
     image: leandelivery/docker-systemd:centos7
     privileged: True
+    force_kill: False
     groups:
       - rhel_family
 provisioner:
   name: ansible
-  config_options:
-    ssh_connection:
-      control_path: "/var/ans/%%h"
-  env:
-    ANSIBLE_LIBRARY:
-      /home/gitlab-runner/.local/lib/python2.7/site-packages/epam_ansible
+  log: True
   lint:
     name: ansible-lint
 scenario:
