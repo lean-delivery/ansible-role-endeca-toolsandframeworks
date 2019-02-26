@@ -55,6 +55,8 @@ Role Variables
     default: `/tmp`
 
   - `tf_version` - Endeca ToolsAndFrameworks version
+  - `tf_hostname` - Endeca ToolsAndFrameworks hostname  
+    default: `"{{ ansible_fqdn }}"`
 
 #### Set ToolsAndFrameworks version as it's defined in official Oracle Documentation
 

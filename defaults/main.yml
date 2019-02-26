@@ -7,6 +7,9 @@ base_root: "/opt"
 # service name
 tf_service: "endeca-toolsandframeworks"
 
+# service host
+tf_hostname: "{{ ansible_fqdn }}"
+
 # artifact source transport
 transport: "local"
 # available are:
